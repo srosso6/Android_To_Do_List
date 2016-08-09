@@ -14,6 +14,7 @@ public final class TaskReaderContract {
         public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_HEADING = "heading";
         public static final String COLUMN_NAME_CONTENT = "content";
+        public static final String COLUMN_NAME_DONE = "done";
     }
 
 }

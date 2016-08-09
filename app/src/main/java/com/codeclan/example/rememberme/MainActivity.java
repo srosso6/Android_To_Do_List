@@ -2,6 +2,7 @@ package com.codeclan.example.rememberme;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -27,13 +28,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView mHeading;
     private CheckBox mCheckBox;
     private Button mDelButton;
+    private int mTaskComplete;
     DatabaseHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        this.deleteDatabase("reminders.db");
+        this.deleteDatabase("reminders.db");
         db = new DatabaseHelper(this);
         getNotes();
     }
@@ -47,13 +49,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void displayNote(String headingText, String contentText, String id) {
         ViewGroup layout = createLinearLayout(id);
+//        layout.setBackgroundColor(Color.parseColor("#FFDEF3"));
+        layout.setBackgroundResource(R.drawable.shape_notes);
         createTextView(headingText, contentText, layout, id);
-        createCheckBox();
+        createCheckBox(id, headingText);
         createDelButton(id, layout);
         add(layout);
     }
 
     public void addNote(View view) {
+        mTaskComplete = 0;
         final String headingText = getNote(R.id.edit_note_heading);
         final String contentText = getNote(R.id.edit_note_content);
         String id = addToDb(headingText, contentText);
@@ -87,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         mHeading.setText(headingText);
 
         final EditText editText = new EditText(this);
+        editText.setBackgroundResource(R.drawable.edit_text_notes);
         final TextView newHeading = new TextView(this);
 
         mHeading.setOnClickListener(new View.OnClickListener() {
@@ -101,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View view) {
                 layout.removeView(layout.getChildAt(0));
+                editText.setText(headingText);
                 layout.addView(editText, 0);
                 return true;
             }
@@ -113,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
                     String newHeadingText = editText.getText().toString();
                     newHeading.setTextSize(40);
                     newHeading.setText(newHeadingText);
+//                    editText.setText("");
                     layout.removeView(editText);
                     layout.addView(newHeading, 0);
                     updateDb(id, newHeadingText);
@@ -122,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void createCheckBox() {
+    public void createCheckBox(final String id, final String headingText) {
         mCheckBox = new CheckBox(this);
         mCheckBox.setText("Done");
         final TextView heading = mHeading;
@@ -132,10 +140,12 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     heading.setPaintFlags(heading.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-
+                    mTaskComplete = 1;
                 } else {
                     heading.setPaintFlags(heading.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                    mTaskComplete = 0;
                 }
+                db.updateData(id, headingText, mTaskComplete);
             }
         });
     }
@@ -143,6 +153,9 @@ public class MainActivity extends AppCompatActivity {
     public void createDelButton(final String id, final ViewGroup layout) {
         mDelButton = new Button(this);
         mDelButton.setText("Delete");
+        mDelButton.setBackgroundResource(R.drawable.del_button);
+        mDelButton.setWidth(50);
+        mDelButton.setHeight(70);
 
         mDelButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,8 +167,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void add(final ViewGroup layout) {
-        layout.addView(mHeading);
-        layout.addView(mCheckBox);
+        LinearLayout innerLayout = new LinearLayout(this);
+        innerLayout.setOrientation(LinearLayout.HORIZONTAL);
+        innerLayout.addView(mHeading);
+        innerLayout.addView(mCheckBox);
+        layout.addView(innerLayout);
         layout.addView(mDelButton);
         ViewGroup noteList = (ViewGroup) findViewById(R.id.note_list);
         noteList.addView(layout);
@@ -167,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String addToDb(String headingText, String contentText){
-        long result = db.insertData(headingText, contentText);
+        long result = db.insertData(headingText, contentText, mTaskComplete);
         if(result == -1) {
             Toast.makeText(MainActivity.this, "Data Not Inserted", Toast.LENGTH_LONG).show();
         }
@@ -182,6 +198,8 @@ public class MainActivity extends AppCompatActivity {
                 String id = cursor.getString(cursor.getColumnIndex("id"));
                 String heading = cursor.getString(cursor.getColumnIndex("heading"));
                 String content = cursor.getString(cursor.getColumnIndex("content"));
+                String taskComplete = cursor.getString(cursor.getColumnIndex("done"));
+                mTaskComplete = Integer.parseInt(taskComplete);
                 displayNote(heading, content, id);
                 cursor.moveToNext();
             }
@@ -190,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateDb(String id, String headingText) {
-        db.updateData(id, headingText);
+        db.updateData(id, headingText, mTaskComplete);
     }
 
     public void deleteFromDb(String id) {

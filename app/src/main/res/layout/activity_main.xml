@@ -5,19 +5,23 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="center_horizontal">
+    android:layout_gravity="center_horizontal"
+    android:background="@color/main">
+    >
 
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="2">
+            android:layout_weight="2"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/shape_add_note">
 
             <EditText
                 android:id="@+id/edit_note_heading"
@@ -25,21 +29,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="20sp"
-                android:layout_marginTop="5dp"/>
+                android:layout_marginTop="5dp"
+                android:background="@drawable/edit_text_add_note"/>
 
             <EditText
                 android:id="@+id/edit_note_content"
                 android:hint="@string/note_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"/>
+                android:layout_marginTop="5dp"
+                android:textSize="20sp"
+                android:background="@drawable/edit_text_add_note"/>
 
             <Button
                 android:id="@+id/button"
                 android:text="@string/add_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="addNote"/>
+                android:onClick="addNote"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/add_button"/>
 
         </LinearLayout>
 
@@ -48,7 +57,8 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:layout_margin="12dp">
 
         </LinearLayout>
 

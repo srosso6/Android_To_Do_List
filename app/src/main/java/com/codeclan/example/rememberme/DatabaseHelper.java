@@ -20,7 +20,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(
-                "CREATE TABLE " + TaskReaderContract.TaskEntry.TABLE_NAME + " (" + TaskReaderContract.TaskEntry.COLUMN_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TaskReaderContract.TaskEntry.COLUMN_NAME_HEADING + " TEXT, " + TaskReaderContract.TaskEntry.COLUMN_NAME_CONTENT + " TEXT)");
+                "CREATE TABLE " + TaskReaderContract.TaskEntry.TABLE_NAME + " (" + TaskReaderContract.TaskEntry.COLUMN_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + TaskReaderContract.TaskEntry.COLUMN_NAME_HEADING + " TEXT, " + TaskReaderContract.TaskEntry.COLUMN_NAME_CONTENT + " TEXT, " + TaskReaderContract.TaskEntry.COLUMN_NAME_DONE + " INTEGER)" );
     }
 
     @Override
@@ -29,11 +29,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public long insertData(String heading, String content) {
+    public long insertData(String heading, String content, int done) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_HEADING, heading);
         contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_CONTENT, content);
+        contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_DONE, done);
         return db.insert(TaskReaderContract.TaskEntry.TABLE_NAME, null, contentValues);
     }
 
@@ -42,13 +43,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TaskReaderContract.TaskEntry.TABLE_NAME, null);
     }
 
-    public boolean updateData(String id, String heading) {
+    public boolean updateData(String id, String heading, int done) {
         //need to add content in here too once refactored
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_ID, id);
         contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_HEADING, heading);
 //        contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_CONTENT, content);
+        contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_DONE, done);
         db.update(TaskReaderContract.TaskEntry.TABLE_NAME, contentValues, "id = ?", new String[]{id});
         return true;
     }
