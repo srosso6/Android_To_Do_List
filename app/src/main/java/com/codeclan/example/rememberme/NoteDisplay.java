@@ -23,7 +23,6 @@ public class NoteDisplay {
 
     private String mId;
     private TextView mHeading;
-//    private TextView mContent;
     private String mHeadingText;
     private String mContentText;
     private CheckBox mCheckBox;
@@ -32,7 +31,6 @@ public class NoteDisplay {
     protected Activity mContext;
 
     public NoteDisplay(Activity context, String headingText, String contentText, int taskComplete, String id) {
-//        mContext = (Activity) context.getApplicationContext();
         mContext = context;
         mHeadingText = headingText;
         mContentText = contentText;

@@ -20,8 +20,8 @@ public class DetailActivity extends Activity {
     private String mHeadingText;
     private String mId;
     private int mTaskComplete;
-    int year_x, month_x, day_x;
-    static final int DIALOG_ID = 0;
+//    int year_x, month_x, day_x;
+//    static final int DIALOG_ID = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +45,6 @@ public class DetailActivity extends Activity {
 
     public void showCalendar() {
 //        Calendar calendar = new GregorianCalendar();
-
     }
 
     public void setContent() {
