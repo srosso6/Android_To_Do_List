@@ -3,4 +3,5 @@
     <string name="note_heading">Title</string>
     <string name="note_content">Take a note&#8230;</string>
     <string name="add_button">Add</string>
+    <string name="cal_button">Set due date?</string>
 </resources>

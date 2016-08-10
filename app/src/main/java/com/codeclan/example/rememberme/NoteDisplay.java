@@ -1,8 +1,11 @@
 package com.codeclan.example.rememberme;
 
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.DragEvent;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,15 +23,16 @@ public class NoteDisplay {
 
     private String mId;
     private TextView mHeading;
+//    private TextView mContent;
     private String mHeadingText;
     private String mContentText;
     private CheckBox mCheckBox;
     private Button mDelButton;
     private int mTaskComplete;
-    protected MainActivity mContext;
+    protected Activity mContext;
 
-    public NoteDisplay(MainActivity context, String headingText, String contentText, int taskComplete, String id) {
-//        this.context = context.getApplicationContext();
+    public NoteDisplay(Activity context, String headingText, String contentText, int taskComplete, String id) {
+//        mContext = (Activity) context.getApplicationContext();
         mContext = context;
         mHeadingText = headingText;
         mContentText = contentText;
@@ -44,7 +48,7 @@ public class NoteDisplay {
         ViewGroup vLayout = createVerticalLinearLayout();
         vLayout.addView(hLayout);
         vLayout.addView(createDelButton());
-        setListeners();
+        setListeners(vLayout);
         return vLayout;
     }
 
@@ -53,25 +57,38 @@ public class NoteDisplay {
         LinearLayout vLayout = new LinearLayout(mContext);
         vLayout.setOrientation(LinearLayout.VERTICAL);
         vLayout.setBackgroundResource(R.drawable.shape_notes);
+        vLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1.0f));
         vLayout.setId(idAsInt);
         return vLayout;
     }
 
     public ViewGroup createHorizontalLinearLayout() {
-        LinearLayout layout = new LinearLayout(mContext);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        return layout;
+        LinearLayout hLayout = new LinearLayout(mContext);
+        hLayout.setOrientation(LinearLayout.HORIZONTAL);
+        return hLayout;
+    }
+
+    public ViewGroup getVerticalLinearLayout() {
+        return (ViewGroup) mContext.findViewById(Integer.parseInt(mId));
+
+    }
+
+    public ViewGroup getHorizontalLinearLayout() {
+        ViewGroup vLayout = getVerticalLinearLayout();
+        return (ViewGroup) vLayout.getChildAt(0);
     }
 
     public TextView createHeading() {
-        mHeading.setTextSize(40);
+        mHeading.setTextSize(30);
         mHeading.setText(mHeadingText);
+        mHeading.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 0.3f));
         return mHeading;
     }
 
     public CheckBox createCheckBox() {
         mCheckBox = new CheckBox(mContext);
         mCheckBox.setText("Done");
+        mCheckBox.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 0.7f));
         return mCheckBox;
     }
 
@@ -84,17 +101,19 @@ public class NoteDisplay {
         return mDelButton;
     }
 
-    public EditText createEditText() {
+    public EditText createEditText(String text) {
         EditText editText = new EditText(mContext);
         editText.setBackgroundResource(R.drawable.edit_text_notes);
-        editText.setText(mHeadingText);
+        editText.setText(text);
         return editText;
     }
 
     public Bundle createBundle() {
         Bundle extras = new Bundle();
-        extras.putString("heading", mHeadingText);
-        extras.putString("content", mContentText);
+        extras.putString("id", mId);
+        extras.putString("headingText", mHeadingText);
+        extras.putString("contentText", mContentText);
+        extras.putInt("taskComplete", mTaskComplete);
         return extras;
     }
 
@@ -104,9 +123,61 @@ public class NoteDisplay {
         mContext.startActivity(intent);
     }
 
-    public void setListeners() {
+    public void setListeners(ViewGroup vLayout) {
 
-        final EditText editText = createEditText();
+        final EditText editTextHeading = createEditText(mHeadingText);
+        final ViewGroup noteList = mContext.getNoteList();
+
+        vLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                DragShadow dragShadow = new DragShadow(view);
+                ClipData data = ClipData.newPlainText("", "");
+                view.startDrag(data, dragShadow, view, 0);
+                view.setVisibility(View.INVISIBLE);
+                return true;
+            }
+        });
+
+        vLayout.setOnDragListener(new View.OnDragListener() {
+            @Override
+            public boolean onDrag(View view, DragEvent event) {
+
+                ViewGroup target = (ViewGroup) view;
+                ViewGroup dragged = (ViewGroup) event.getLocalState();
+
+                final int targetIndex = noteList.indexOfChild(target);
+                final int draggedIndex = noteList.indexOfChild(dragged);
+
+                int dragEvent = event.getAction();
+
+                switch(dragEvent) {
+                    case DragEvent.ACTION_DRAG_ENTERED:
+                        Log.d("drag", "entered");
+                        noteList.removeView(target);
+                        noteList.addView(target, draggedIndex);
+                        noteList.removeView(dragged);
+                        noteList.addView(dragged, targetIndex);
+                        dragged.setVisibility(View.INVISIBLE);
+                        break;
+
+                    case DragEvent.ACTION_DRAG_EXITED:
+                        Log.d("drag", "exited");
+                        dragged.setVisibility(View.VISIBLE);
+                        break;
+
+                    case DragEvent.ACTION_DROP:
+                        Log.d("drag", "dropped");
+                        dragged.setVisibility(View.VISIBLE);
+                        break;
+
+                    case DragEvent.ACTION_DRAG_ENDED:
+                        Log.d("drag", "ended");
+                        break;
+                }
+                return true;
+            }
+        });
 
         mHeading.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,18 +190,24 @@ public class NoteDisplay {
         mHeading.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                mContext.enableHeaderEdit(editText, mId);
+                ViewGroup hLayout = getHorizontalLinearLayout();
+                hLayout.removeView(hLayout.getChildAt(0));
+                hLayout.addView(editTextHeading, 0);
                 return true;
             }
         });
 
-        editText.setOnKeyListener(new View.OnKeyListener() {
+        editTextHeading.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View view, int keyCode, KeyEvent event) {
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
                         (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    mHeadingText = editText.getText().toString();
+                    mHeadingText = editTextHeading.getText().toString();
                     mHeading = createHeading();
-                    mContext.updateHeader(editText, mHeading, mHeadingText, mTaskComplete,  mId);
+
+                    ViewGroup hLayout = getHorizontalLinearLayout();
+                    hLayout.removeView(editTextHeading);
+                    hLayout.addView(mHeading, 0);
+                    mContext.updateDb(mId, mHeadingText, mContentText, mTaskComplete);
                 }
                 return false;
             }
@@ -146,16 +223,18 @@ public class NoteDisplay {
                     mHeading.setPaintFlags(mHeading.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                     mTaskComplete = 0;
                 }
-                mContext.updateDb(mId, mHeadingText, mTaskComplete);
+                mContext.updateDb(mId, mHeadingText, mContentText, mTaskComplete);
             }
         });
 
         mDelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ViewGroup vLayout = mContext.getNote(mId);
-                mContext.removeNote(vLayout, mId);
+                ViewGroup vLayout = getVerticalLinearLayout();
+                mContext.removeNote(vLayout);
+                mContext.deleteFromDb(mId);
             }
         });
+
     }
 }

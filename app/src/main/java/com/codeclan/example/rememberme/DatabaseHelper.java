@@ -43,13 +43,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TaskReaderContract.TaskEntry.TABLE_NAME, null);
     }
 
-    public boolean updateData(String id, String heading, int done) {
+    public boolean updateData(String id, String heading, String content, int done) {
         //need to add content in here too once refactored
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_ID, id);
         contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_HEADING, heading);
-//        contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_CONTENT, content);
+        contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_CONTENT, content);
         contentValues.put(TaskReaderContract.TaskEntry.COLUMN_NAME_DONE, done);
         db.update(TaskReaderContract.TaskEntry.TABLE_NAME, contentValues, "id = ?", new String[]{id});
         return true;
